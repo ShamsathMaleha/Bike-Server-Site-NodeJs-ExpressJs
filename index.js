@@ -8,7 +8,7 @@ const admin = require("firebase-admin");
 const { MongoClient } = require('mongodb');
 const port = process.env.PORT || 5000;
 
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET)
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -139,18 +139,30 @@ async function run() {
         res.json(result);
       })
 
-
+      app.put('/purchase/:id', async (req, res) => {
+        const id = req.params.id;
+        const payment = req.body;
+        const filter = {_id: ObjectId(id)}
+        // const options = { upsert: true };
+        const updateDoc = {
+           $set:{
+              payment: payment
+            }
+        };
+        const result = await purchaseCollection.updateOne(filter, updateDoc);
+        res.json(result);
+      });
 
         //Update booking status
-     app.patch('/purchase/:id', (req, res) => {
-        purchaseCollection.updateOne({ _id: ObjectId(req.params.id) },
-            {
-                $set: { status: req.body.status }
-            })
-            .then(result => {
-                res.send(result.modifiedCount > 0)
-            })
-    })
+    //  app.patch('/purchase/:id', (req, res) => {
+    //     purchaseCollection.updateOne({ _id: ObjectId(req.params.id) },
+    //         {
+    //             $set: { status: req.body.status }
+    //         })
+    //         .then(result => {
+    //             res.send(result.modifiedCount > 0)
+    //         })
+    // })
         // delete api 
   
         app.delete('/purchase/:id',async(req,res)=>{
@@ -209,6 +221,23 @@ async function run() {
           }
 
       })
+
+      app.post("/create-payment-intent", async (req, res) => {
+        const paymentInfo = req.body;
+        const amount = paymentInfo.price*100
+        // Create a PaymentIntent with the order amount and currency
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          
+          payment_methods_types: ['card']
+        });
+      
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      });
+
 
   }
   finally {
