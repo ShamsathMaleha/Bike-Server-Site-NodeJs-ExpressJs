@@ -223,21 +223,31 @@ async function run() {
 
       })
 
-      app.post("/create-payment-intent", async (req, res) => {
-        const paymentInfo = req.body;
-        const amount = paymentInfo.price*100
-        // Create a PaymentIntent with the order amount and currency
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: "usd",
-          
-          payment_methods_types: ['card']
-        });
+      // app.post("/create-payment-intent", async (req, res) => {
+      //   const paymentInfo = req.body;
+      //   const amount = paymentInfo.price*100
+      //   // Create a PaymentIntent with the order amount and currency
+      //   const paymentIntent = await stripe.paymentIntents.create({
+      //     amount: amount,
+      //     currency: "usd",
+      //     payment_methods_types: ['card'],
+      //   });
       
-        res.send({
-          clientSecret: paymentIntent.client_secret,
+      //   res.send({
+      //     clientSecret: paymentIntent.client_secret,
+      //   });
+      // });
+
+      app.post('/create-payment-intent', async (req, res) => {
+        const paymentInfo = req.body;
+        const amount = paymentInfo.priceinfo * 100;
+        const paymentIntent = await stripe.paymentIntents.create({
+            currency: 'usd',
+            amount: amount,
+            payment_method_types: ['card']
         });
-      });
+        res.json({ clientSecret: paymentIntent.client_secret })
+    })
 
 
   }
