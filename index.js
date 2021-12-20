@@ -146,7 +146,8 @@ async function run() {
         // const options = { upsert: true };
         const updateDoc = {
            $set:{
-              payment: payment
+              payment: payment,
+              status:'confirm'
             }
         };
         const result = await purchaseCollection.updateOne(filter, updateDoc);
